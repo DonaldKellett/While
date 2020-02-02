@@ -110,15 +110,25 @@ num = try posNum <|> try zeroNum <|> negNum
       ANum absN <- posNum
       return (ANum (-absN))
 
--- A factor is an arithmetic expression without +/-
-factor :: Parsec String () AExp
-factor = chainl1 (try var <|> num) mulOrDiv
+-- An arithmetic expression is a variable, numeral, factor, term or parenthesized arithmetic expression
+aexp :: Parsec String () AExp
+aexp = chainl1 term plusOrMinus
   where
-    mulOrDiv = do
+    term = chainl1 factor (try multOrDiv)
+    factor = try (between (char '(') (char ')') aexp) <|> try var <|> num
+    plusOrMinus = do
+      spaces
+      symbol <- oneOf "+-"
+      spaces
+      case symbol of
+        '+' -> return APlus
+        '-' -> return AMinus
+        _ -> error "impossible"
+    multOrDiv = do
       spaces
       symbol <- oneOf "*/"
       spaces
       case symbol of
         '*' -> return AMult
         '/' -> return ADiv
-        _ -> error "bogus" -- impossible
+        _ -> error "impossible"
