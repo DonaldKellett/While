@@ -44,3 +44,32 @@ main = hspec $ do
           parse While.var "" "do" `shouldSatisfy` isLeft
           parse While.var "" "5 rings" `shouldSatisfy` isLeft
           parse While.var "" "MyVar" `shouldSatisfy` isLeft
+      describe "For numerals" $ do
+        it "should only accept integers in decimal form" $ do
+          parse While.num "" "-1024" `shouldBe` Right (While.ANum (-1024))
+          parse While.num "" "-512" `shouldBe` Right (While.ANum (-512))
+          parse While.num "" "-256" `shouldBe` Right (While.ANum (-256))
+          parse While.num "" "-128" `shouldBe` Right (While.ANum (-128))
+          parse While.num "" "-64" `shouldBe` Right (While.ANum (-64))
+          parse While.num "" "-32" `shouldBe` Right (While.ANum (-32))
+          parse While.num "" "-16" `shouldBe` Right (While.ANum (-16))
+          parse While.num "" "-8" `shouldBe` Right (While.ANum (-8))
+          parse While.num "" "-4" `shouldBe` Right (While.ANum (-4))
+          parse While.num "" "-2" `shouldBe` Right (While.ANum (-2))
+          parse While.num "" "-1" `shouldBe` Right (While.ANum (-1))
+          parse While.num "" "0" `shouldBe` Right (While.ANum 0)
+          parse While.num "" "1" `shouldBe` Right (While.ANum 1)
+          parse While.num "" "2" `shouldBe` Right (While.ANum 2)
+          parse While.num "" "4" `shouldBe` Right (While.ANum 4)
+          parse While.num "" "8" `shouldBe` Right (While.ANum 8)
+          parse While.num "" "16" `shouldBe` Right (While.ANum 16)
+          parse While.num "" "32" `shouldBe` Right (While.ANum 32)
+          parse While.num "" "64" `shouldBe` Right (While.ANum 64)
+          parse While.num "" "128" `shouldBe` Right (While.ANum 128)
+          parse While.num "" "256" `shouldBe` Right (While.ANum 256)
+          parse While.num "" "512" `shouldBe` Right (While.ANum 512)
+          parse While.num "" "1024" `shouldBe` Right (While.ANum 1024)
+          parse While.num "" "-0" `shouldSatisfy` isLeft
+          parse While.num "" "haha" `shouldSatisfy` isLeft
+          parse While.num "" "a1b2c3" `shouldSatisfy` isLeft
+          parse While.num "" " 10 " `shouldSatisfy` isLeft

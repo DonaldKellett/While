@@ -93,3 +93,19 @@ var = do
   guard (length x <= 10)
   guard (not (elem x ["and", "or", "true", "false", "if", "then", "else", "while", "do"]))
   return (AId x)
+
+-- A numeral must be an integer in decimal form
+num :: Parsec String () AExp
+num = try posNum <|> try zeroNum <|> negNum
+  where
+    posNum = do
+      leadDigit <- oneOf "123456789"
+      otherDigits <- many digit
+      return (ANum (read (leadDigit : otherDigits)))
+    zeroNum = do
+      char '0'
+      return (ANum 0)
+    negNum = do
+      char '-'
+      ANum absN <- posNum
+      return (ANum (-absN))
