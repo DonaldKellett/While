@@ -1,7 +1,12 @@
 module While where
 
+import Text.Parsec
 import Control.Monad
 import qualified Data.Map as Map
+
+{-
+Abstract syntax and operational semantics of While
+-}
 
 -- Arithmetic expressions
 data AExp =
@@ -11,6 +16,7 @@ data AExp =
   AMinus AExp AExp | -- Subtraction
   AMult AExp AExp |  -- Multiplication
   ADiv AExp AExp     -- Integer Divison
+  deriving (Eq, Show)
 
 -- Boolean expressions
 data BExp =
@@ -20,6 +26,7 @@ data BExp =
   BOr BExp BExp |  -- boolean OR
   BGt AExp AExp |  -- arithmetic greater than
   BLt AExp AExp    -- arithmetic less than
+  deriving (Eq, Show)
 
 -- Statements
 data Stmt =
@@ -27,6 +34,7 @@ data Stmt =
   SSeq Stmt Stmt |     -- Statement sequencing
   SIf BExp Stmt Stmt | -- Conditional statement
   SWhile BExp Stmt     -- While loop
+  deriving (Eq, Show)
 
 -- Program state
 type St = Map.Map String Integer
@@ -73,3 +81,15 @@ seval st s = case s of
         st' <- seval st s'
         seval st' s
       else return st
+
+{-
+Parsers for translating concrete syntax of While into abstract syntax
+-}
+
+-- A variable consists of 1-10 lowercase letters and cannot be a reserved keyword
+var :: Parsec String () AExp
+var = do
+  x <- many1 lower
+  guard (length x <= 10)
+  guard (not (elem x ["and", "or", "true", "false", "if", "then", "else", "while", "do"]))
+  return (AId x)
