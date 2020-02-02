@@ -155,3 +155,5 @@ main = hspec $ do
         it "should work for nested parenthesized expressions" $ do
           parse While.aexp "" "e + 5 * (((3 + a) * 2 - -1 * (-3 - -5) / b) / d)" `shouldBe`
             Right (While.APlus (While.AId "e") (While.AMult (While.ANum 5) (While.ADiv (While.AMinus (While.AMult (While.APlus (While.ANum 3) (While.AId "a")) (While.ANum 2)) (While.ADiv (While.AMult (While.ANum (-1)) (While.AMinus (While.ANum (-3)) (While.ANum (-5)))) (While.AId "b"))) (While.AId "d"))))
+          parse While.aexp "" "e + 5 * ( ( ( 3 + a ) * 2 - -1 * ( -3 - -5 ) / b ) / d )" `shouldBe`
+            Right (While.APlus (While.AId "e") (While.AMult (While.ANum 5) (While.ADiv (While.AMinus (While.AMult (While.APlus (While.ANum 3) (While.AId "a")) (While.ANum 2)) (While.ADiv (While.AMult (While.ANum (-1)) (While.AMinus (While.ANum (-3)) (While.ANum (-5)))) (While.AId "b"))) (While.AId "d"))))

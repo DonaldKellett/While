@@ -112,9 +112,9 @@ num = try posNum <|> try zeroNum <|> negNum
 
 -- An arithmetic expression is a variable, numeral, factor, term or parenthesized arithmetic expression
 aexp :: Parsec String () AExp
-aexp = chainl1 term plusOrMinus
+aexp = spaces *> chainl1 term plusOrMinus <* spaces
   where
-    term = chainl1 factor (try multOrDiv)
+    term = spaces *> chainl1 factor (try multOrDiv) <* spaces
     factor = try (between (char '(') (char ')') aexp) <|> try var <|> num
     plusOrMinus = do
       spaces
