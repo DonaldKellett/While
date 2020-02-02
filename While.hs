@@ -123,7 +123,6 @@ aexp = chainl1 term plusOrMinus
       case symbol of
         '+' -> return APlus
         '-' -> return AMinus
-        _ -> error "impossible"
     multOrDiv = do
       spaces
       symbol <- oneOf "*/"
@@ -131,4 +130,3 @@ aexp = chainl1 term plusOrMinus
       case symbol of
         '*' -> return AMult
         '/' -> return ADiv
-        _ -> error "impossible"
