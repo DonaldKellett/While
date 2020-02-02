@@ -73,17 +73,6 @@ main = hspec $ do
           parse While.num "" "haha" `shouldSatisfy` isLeft
           parse While.num "" "a1b2c3" `shouldSatisfy` isLeft
           parse While.num "" " 10 " `shouldSatisfy` isLeft
-      describe "For arithmetic operators" $ do
-        it "should only accept one of \"+-*/\"" $ do
-          (parse While.opA "" "+" >>= \op -> return (op (While.ANum 0) (While.ANum 0))) `shouldBe`
-            Right (While.APlus (While.ANum 0) (While.ANum 0))
-          (parse While.opA "" "-" >>= \op -> return (op (While.ANum 0) (While.ANum 0))) `shouldBe`
-            Right (While.AMinus (While.ANum 0) (While.ANum 0))
-          (parse While.opA "" "*" >>= \op -> return (op (While.ANum 0) (While.ANum 0))) `shouldBe`
-            Right (While.AMult (While.ANum 0) (While.ANum 0))
-          (parse While.opA "" "/" >>= \op -> return (op (While.ANum 0) (While.ANum 1))) `shouldBe`
-            Right (While.ADiv (While.ANum 0) (While.ANum 1))
-          (parse While.opA "" "and" >>= \op -> return (op (While.ANum 0) (While.ANum 0))) `shouldSatisfy` isLeft
-          (parse While.opA "" "or" >>= \op -> return (op (While.ANum 0) (While.ANum 0))) `shouldSatisfy` isLeft
-          (parse While.opA "" ">" >>= \op -> return (op (While.ANum 0) (While.ANum 0))) `shouldSatisfy` isLeft
-          (parse While.opA "" "<" >>= \op -> return (op (While.ANum 0) (While.ANum 0))) `shouldSatisfy` isLeft
+      describe "For factors" $ do
+        it "should work for some tests" $ do
+          pending
