@@ -109,3 +109,14 @@ num = try posNum <|> try zeroNum <|> negNum
       char '-'
       ANum absN <- posNum
       return (ANum (-absN))
+
+-- An arithmetic operator is just one of "+-*/"
+opA :: Parsec String () (AExp -> AExp -> AExp)
+opA = do
+  symbol <- oneOf "+-*/"
+  case symbol of
+    '+' -> return APlus
+    '-' -> return AMinus
+    '*' -> return AMult
+    '/' -> return ADiv
+    _ -> error "bogus" -- Impossible, won't happen
