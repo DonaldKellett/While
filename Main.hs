@@ -74,5 +74,57 @@ main = hspec $ do
           parse While.num "" "a1b2c3" `shouldSatisfy` isLeft
           parse While.num "" " 10 " `shouldSatisfy` isLeft
       describe "For factors" $ do
-        it "should work for some tests" $ do
-          pending
+        it "should work for some trivial examples involving only variables" $ do
+          parse While.factor "" "cur" `shouldBe` Right (While.AId "cur")
+          parse While.factor "" "fact" `shouldBe` Right (While.AId "fact")
+          parse While.factor "" "mod" `shouldBe` Right (While.AId "mod")
+          parse While.factor "" "val" `shouldBe` Right (While.AId "val")
+          parse While.factor "" "a" `shouldBe` Right (While.AId "a")
+          parse While.factor "" "b" `shouldBe` Right (While.AId "b")
+          parse While.factor "" "max" `shouldBe` Right (While.AId "max")
+          parse While.factor "" "min" `shouldBe` Right (While.AId "min")
+          parse While.factor "" "hahahahaha" `shouldBe` Right (While.AId "hahahahaha")
+        it "should work for some trivial examples involving only numerals" $ do
+          parse While.factor "" "-1024" `shouldBe` Right (While.ANum (-1024))
+          parse While.factor "" "-512" `shouldBe` Right (While.ANum (-512))
+          parse While.factor "" "-256" `shouldBe` Right (While.ANum (-256))
+          parse While.factor "" "-128" `shouldBe` Right (While.ANum (-128))
+          parse While.factor "" "-64" `shouldBe` Right (While.ANum (-64))
+          parse While.factor "" "-32" `shouldBe` Right (While.ANum (-32))
+          parse While.factor "" "-16" `shouldBe` Right (While.ANum (-16))
+          parse While.factor "" "-8" `shouldBe` Right (While.ANum (-8))
+          parse While.factor "" "-4" `shouldBe` Right (While.ANum (-4))
+          parse While.factor "" "-2" `shouldBe` Right (While.ANum (-2))
+          parse While.factor "" "-1" `shouldBe` Right (While.ANum (-1))
+          parse While.factor "" "0" `shouldBe` Right (While.ANum 0)
+          parse While.factor "" "1" `shouldBe` Right (While.ANum 1)
+          parse While.factor "" "2" `shouldBe` Right (While.ANum 2)
+          parse While.factor "" "4" `shouldBe` Right (While.ANum 4)
+          parse While.factor "" "8" `shouldBe` Right (While.ANum 8)
+          parse While.factor "" "16" `shouldBe` Right (While.ANum 16)
+          parse While.factor "" "32" `shouldBe` Right (While.ANum 32)
+          parse While.factor "" "64" `shouldBe` Right (While.ANum 64)
+          parse While.factor "" "128" `shouldBe` Right (While.ANum 128)
+          parse While.factor "" "256" `shouldBe` Right (While.ANum 256)
+          parse While.factor "" "512" `shouldBe` Right (While.ANum 512)
+          parse While.factor "" "1024" `shouldBe` Right (While.ANum 1024)
+        it "should work for simple examples involving exactly one multiplication or divison symbol" $ do
+          parse While.factor "" "3*5" `shouldBe` Right (While.AMult (While.ANum 3) (While.ANum 5))
+          parse While.factor "" "3 *5" `shouldBe` Right (While.AMult (While.ANum 3) (While.ANum 5))
+          parse While.factor "" "3* 5" `shouldBe` Right (While.AMult (While.ANum 3) (While.ANum 5))
+          parse While.factor "" "3 * 5" `shouldBe` Right (While.AMult (While.ANum 3) (While.ANum 5))
+          parse While.factor "" "15/5" `shouldBe` Right (While.ADiv (While.ANum 15) (While.ANum 5))
+          parse While.factor "" "15 /5" `shouldBe` Right (While.ADiv (While.ANum 15) (While.ANum 5))
+          parse While.factor "" "15/ 5" `shouldBe` Right (While.ADiv (While.ANum 15) (While.ANum 5))
+          parse While.factor "" "15 / 5" `shouldBe` Right (While.ADiv (While.ANum 15) (While.ANum 5))
+          parse While.factor "" "alfalfa * 5" `shouldBe` Right (While.AMult (While.AId "alfalfa") (While.ANum 5))
+          parse While.factor "" "17 * haha" `shouldBe` Right (While.AMult (While.ANum 17) (While.AId "haha"))
+          parse While.factor "" "abc * def" `shouldBe` Right (While.AMult (While.AId "abc") (While.AId "def"))
+          parse While.factor "" "alfalfa / 5" `shouldBe` Right (While.ADiv (While.AId "alfalfa") (While.ANum 5))
+          parse While.factor "" "17 / haha" `shouldBe` Right (While.ADiv (While.ANum 17) (While.AId "haha"))
+          parse While.factor "" "abc / def" `shouldBe` Right (While.ADiv (While.AId "abc") (While.AId "def"))
+        it "should parse more complex factors in a left-associative manner" $ do
+          parse While.factor "" "fact / mod * mod" `shouldBe`
+            Right (While.AMult (While.ADiv (While.AId "fact") (While.AId "mod")) (While.AId "mod"))
+          parse While.factor "" "a * -4 * c / d / 5 / -6 * g" `shouldBe`
+            Right (While.AMult (While.ADiv (While.ADiv (While.ADiv (While.AMult (While.AMult (While.AId "a") (While.ANum (-4))) (While.AId "c")) (While.AId "d")) (While.ANum 5)) (While.ANum (-6))) (While.AId "g"))

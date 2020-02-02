@@ -111,4 +111,14 @@ num = try posNum <|> try zeroNum <|> negNum
       return (ANum (-absN))
 
 -- A factor is an arithmetic expression without +/-
--- TODO
+factor :: Parsec String () AExp
+factor = chainl1 (try var <|> num) mulOrDiv
+  where
+    mulOrDiv = do
+      spaces
+      symbol <- oneOf "*/"
+      spaces
+      case symbol of
+        '*' -> return AMult
+        '/' -> return ADiv
+        _ -> error "bogus" -- impossible
