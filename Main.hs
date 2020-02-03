@@ -4,7 +4,7 @@ import Test.Hspec
 import Text.Parsec
 import Data.Either
 import qualified While
-import qualified Data.Map as Map
+import qualified Data.Map.Strict as Map
 
 main :: IO ()
 main = hspec $ do
@@ -13,12 +13,14 @@ main = hspec $ do
     let prog1 = While.SSeq (While.SSeq (While.SSeq (While.SSeq (While.SSeq (While.SAss "fact" (While.ANum 1)) (While.SAss "val" (While.ANum 10000))) (While.SAss "cur" (While.AId "val"))) (While.SAss "mod" (While.ANum 1000000007))) (While.SWhile (While.BGt (While.AId "cur") (While.ANum 1)) (While.SSeq (While.SSeq (While.SAss "fact" (While.AMult (While.AId "fact") (While.AId "cur"))) (While.SAss "fact" (While.AMinus (While.AId "fact") (While.AMult (While.ADiv (While.AId "fact") (While.AId "mod")) (While.AId "mod"))))) (While.SAss "cur" (While.AMinus (While.AId "cur") (While.ANum 1)))))) (While.SAss "cur" (While.ANum 0))
     -- AST of program in prog2.txt
     let prog2 = While.SSeq (While.SSeq (While.SAss "a" (While.ANum 10)) (While.SAss "b" (While.ANum 100))) (While.SIf (While.BLt (While.AId "a") (While.AId "b")) (While.SSeq (While.SAss "min" (While.AId "a")) (While.SAss "max" (While.AId "b"))) (While.SSeq (While.SAss "min" (While.AId "b")) (While.SAss "max" (While.AId "a"))))
+    -- empty =[ prog1 ]=> st1
+    let st1 = Map.fromList [("cur", 0), ("fact", 531950728), ("mod", 1000000007), ("val", 10000)]
+    -- empty =[ prog2 ]=> st2
+    let st2 = Map.fromList [("a", 10), ("b", 100), ("max", 100), ("min", 10)]
     describe "The statement evaluator" $ do
       it "should work for some simple examples" $ do
-        Map.foldrWithKey (\x n xs -> (x, n) : xs) [] <$> (While.seval Map.empty prog1) `shouldBe`
-          Just [("cur", 0), ("fact", 531950728), ("mod", 1000000007), ("val", 10000)]
-        Map.foldrWithKey (\x n xs -> (x, n) : xs) [] <$> (While.seval Map.empty prog2) `shouldBe`
-          Just [("a", 10), ("b", 100), ("max", 100), ("min", 10)]
+        While.seval Map.empty prog1 `shouldBe` Just st1
+        While.seval Map.empty prog2 `shouldBe` Just st2
     describe "The parser" $ do
       describe "For variables" $ do
         it "should accept variable names with 1-10 lowercase letters provided that they are not reserved keywords and reject otherwise" $ do
@@ -157,3 +159,31 @@ main = hspec $ do
             Right (While.APlus (While.AId "e") (While.AMult (While.ANum 5) (While.ADiv (While.AMinus (While.AMult (While.APlus (While.ANum 3) (While.AId "a")) (While.ANum 2)) (While.ADiv (While.AMult (While.ANum (-1)) (While.AMinus (While.ANum (-3)) (While.ANum (-5)))) (While.AId "b"))) (While.AId "d"))))
           parse While.aexp "" "e + 5 * ( ( ( 3 + a ) * 2 - -1 * ( -3 - -5 ) / b ) / d )" `shouldBe`
             Right (While.APlus (While.AId "e") (While.AMult (While.ANum 5) (While.ADiv (While.AMinus (While.AMult (While.APlus (While.ANum 3) (While.AId "a")) (While.ANum 2)) (While.ADiv (While.AMult (While.ANum (-1)) (While.AMinus (While.ANum (-3)) (While.ANum (-5)))) (While.AId "b"))) (While.AId "d"))))
+      describe "For boolean expressions" $ do
+        it "should successfully parse boolean literals" $ do
+          parse While.bexp "" "true" `shouldBe` Right While.BTrue
+          parse While.bexp "" "false" `shouldBe` Right While.BFalse
+        it "should successfully parse simple boolean expressions with only 1 relational operator" $ do
+          parse While.bexp "" "a + b / 5 > c * d - 7" `shouldBe`
+            Right (While.BGt (While.APlus (While.AId "a") (While.ADiv (While.AId "b") (While.ANum 5))) (While.AMinus (While.AMult (While.AId "c") (While.AId "d")) (While.ANum 7)))
+          parse While.bexp "" "a + b / 5 < c * d - 7" `shouldBe`
+            Right (While.BLt (While.APlus (While.AId "a") (While.ADiv (While.AId "b") (While.ANum 5))) (While.AMinus (While.AMult (While.AId "c") (While.AId "d")) (While.ANum 7)))
+        it "should successfully parse simple boolean expressions with exactly 1 boolean operator" $ do
+          parse While.bexp "" "(3 + 4) * 2 < 13 and 1 + (2 + 3) + 4 > 6" `shouldBe`
+            Right (While.BAnd (While.BLt (While.AMult (While.APlus (While.ANum 3) (While.ANum 4)) (While.ANum 2)) (While.ANum 13)) (While.BGt (While.APlus (While.APlus (While.ANum 1) (While.APlus (While.ANum 2) (While.ANum 3))) (While.ANum 4)) (While.ANum 6)))
+          parse While.bexp "" "(3 + 4) * 2 < 13 or 1 + (2 + 3) + 4 > 6" `shouldBe`
+            Right (While.BOr (While.BLt (While.AMult (While.APlus (While.ANum 3) (While.ANum 4)) (While.ANum 2)) (While.ANum 13)) (While.BGt (While.APlus (While.APlus (While.ANum 1) (While.APlus (While.ANum 2) (While.ANum 3))) (While.ANum 4)) (While.ANum 6)))
+        it "should treat boolean operators as left-associative" $ do
+          parse While.bexp "" "true and false and false" `shouldBe` Right (While.BAnd (While.BAnd While.BTrue While.BFalse) While.BFalse)
+          parse While.bexp "" "false or true or false" `shouldBe` Right (While.BOr (While.BOr While.BFalse While.BTrue) While.BFalse)
+        it "should give `and` a higher precedence than `or`" $ do
+          parse While.bexp "" "a > b and c < d or false" `shouldBe` Right (While.BOr (While.BAnd (While.BGt (While.AId "a") (While.AId "b")) (While.BLt (While.AId "c") (While.AId "d"))) While.BFalse)
+          parse While.bexp "" "a < b or true and c > d" `shouldBe` Right (While.BOr (While.BLt (While.AId "a") (While.AId "b")) (While.BAnd While.BTrue (While.BGt (While.AId "c") (While.AId "d"))))
+        it "should work for simple parenthesized expressions" $ do
+          parse While.bexp "" "true and (false or true)" `shouldBe` Right (While.BAnd While.BTrue (While.BOr While.BFalse While.BTrue))
+          parse While.bexp "" "(false or true) and true" `shouldBe` Right (While.BAnd (While.BOr While.BFalse While.BTrue) While.BTrue)
+        it "should work for nested parenthesized expressions" $ do
+          parse While.bexp "" "((a + b) * c < d / (e - f) or g + (h - i) > j) and ((true and (k < l or m > n)) and (false or true))" `shouldBe`
+            Right (While.BAnd (While.BOr (While.BLt (While.AMult (While.APlus (While.AId "a") (While.AId "b")) (While.AId "c")) (While.ADiv (While.AId "d") (While.AMinus (While.AId "e") (While.AId "f")))) (While.BGt (While.APlus (While.AId "g") (While.AMinus (While.AId "h") (While.AId "i"))) (While.AId "j"))) (While.BAnd (While.BAnd While.BTrue (While.BOr (While.BLt (While.AId "k") (While.AId "l")) (While.BGt (While.AId "m") (While.AId "n")))) (While.BOr While.BFalse While.BTrue)))
+          parse While.bexp "" "( ( a + b ) * c < d / ( e - f ) or g + ( h - i ) > j ) and ( ( true and ( k < l or m > n ) ) and ( false or true ) )" `shouldBe`
+            Right (While.BAnd (While.BOr (While.BLt (While.AMult (While.APlus (While.AId "a") (While.AId "b")) (While.AId "c")) (While.ADiv (While.AId "d") (While.AMinus (While.AId "e") (While.AId "f")))) (While.BGt (While.APlus (While.AId "g") (While.AMinus (While.AId "h") (While.AId "i"))) (While.AId "j"))) (While.BAnd (While.BAnd While.BTrue (While.BOr (While.BLt (While.AId "k") (While.AId "l")) (While.BGt (While.AId "m") (While.AId "n")))) (While.BOr While.BFalse While.BTrue)))

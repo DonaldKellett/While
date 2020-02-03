@@ -2,7 +2,7 @@ module While where
 
 import Text.Parsec
 import Control.Monad
-import qualified Data.Map as Map
+import qualified Data.Map.Strict as Map
 
 {-
 Abstract syntax and operational semantics of While
@@ -110,7 +110,10 @@ num = try posNum <|> try zeroNum <|> negNum
       ANum absN <- posNum
       return (ANum (-absN))
 
--- An arithmetic expression is a variable, numeral, factor, term or parenthesized arithmetic expression
+-- An arithmetic expression is a variable, numeral, arithmetic operator applied to two arithmetic expressions or a
+-- parenthesized arithmetic expression
+-- In order to make our parser respect the order of operations, we further subdivide expressions into factors (variable,
+-- numeral or parenthesized expression) and terms (factors seperated by multiplication and/or division only)
 aexp :: Parsec String () AExp
 aexp = spaces *> chainl1 term plusOrMinus <* spaces
   where
@@ -130,3 +133,39 @@ aexp = spaces *> chainl1 term plusOrMinus <* spaces
       case symbol of
         '*' -> return AMult
         '/' -> return ADiv
+
+-- A boolean expression is either of: true, false, boolean operator applied to two boolean expressions, relational operator
+-- applied to two arithmetic expressions, parenthesized boolean expression
+-- Again, since `and` has higher precedence than `or`, we further subdivide expressions into three categories
+bexp :: Parsec String () BExp
+bexp = spaces *> chainl1 conjunct orOp <* spaces
+  where
+    conjunct = spaces *> chainl1 unitExpr (try andOp) <* spaces
+    unitExpr = try (between (char '(') (char ')') bexp) <|> try relExp <|> try true <|> false
+    relExp = do
+      spaces
+      a1 <- aexp
+      spaces
+      symbol <- oneOf "><"
+      spaces
+      a2 <- aexp
+      spaces
+      case symbol of
+        '>' -> return (BGt a1 a2)
+        '<' -> return (BLt a1 a2)
+    true = do
+      string "true"
+      return BTrue
+    false = do
+      string "false"
+      return BFalse
+    orOp = do
+      spaces
+      string "or"
+      spaces
+      return BOr
+    andOp = do
+      spaces
+      string "and"
+      spaces
+      return BAnd
