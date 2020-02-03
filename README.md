@@ -235,7 +235,7 @@ st =[ if b then { S1 } else { S2 } ]=> st'
 
 I probably would not have been able to learn how to use Parsec in Haskell to implement a full-blown parser for a toy imperative programming language in such a short period of time (less than 3 days!) were it not for [this amazing Parsec tutorial](https://www.cnblogs.com/ncore/p/6892500.html) which explains everything from the ground up (instead of jumping straight to a full-blown example as is typical of most Parsec tutorials out there). As for my evaluator and analysis of the syntax and operational semantics of While, they are heavily inspired by the first 2 volumes of [Software Foundations](https://softwarefoundations.cis.upenn.edu).
 
-## Contributions
+## Contributing
 
 This repo is currently not accepting any contributions.
 
