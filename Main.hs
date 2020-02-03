@@ -168,3 +168,15 @@ main = hspec $ do
           parse While.stmt "" prog1MinStr `shouldBe` Right prog1
           prog2MinStr <- readFile "./prog2.min.txt"
           parse While.stmt "" prog2MinStr `shouldBe` Right prog2
+    describe "The interpreter" $ do
+      it "should work for some simple examples" $ do
+        prog1Str <- readFile "./prog1.txt"
+        While.execute prog1Str `shouldBe` Just st1
+        prog2Str <- readFile "./prog2.txt"
+        While.execute prog2Str `shouldBe` Just st2
+        prog1MinStr <- readFile "./prog1.min.txt"
+        While.execute prog1MinStr `shouldBe` Just st1
+        prog2MinStr <- readFile "./prog2.min.txt"
+        While.execute prog2MinStr `shouldBe` Just st2
+        While.execute "not a program" `shouldBe` Nothing
+        While.execute "x := a" `shouldBe` Nothing

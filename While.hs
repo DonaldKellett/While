@@ -2,6 +2,7 @@ module While where
 
 import Text.Parsec
 import Control.Monad
+import Data.Either.Extra
 import qualified Data.Map.Strict as Map
 
 {-
@@ -205,3 +206,11 @@ stmt = spaces *> chainl1 stmtUnit (try seqOp) <* spaces
       char ';'
       spaces
       return SSeq
+
+{-
+Tying everything together ...
+-}
+execute :: String -> Maybe St
+execute code = do
+  prog <- eitherToMaybe (parse While.stmt "" code)
+  seval Map.empty prog
