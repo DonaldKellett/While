@@ -24,15 +24,15 @@ main = hspec $ do
     describe "The parser" $ do
       describe "For variables" $ do
         it "should accept variable names with 1-10 lowercase letters provided that they are not reserved keywords and reject otherwise" $ do
-          parse While.var "" "cur" `shouldBe` Right (While.AId "cur")
-          parse While.var "" "fact" `shouldBe` Right (While.AId "fact")
-          parse While.var "" "mod" `shouldBe` Right (While.AId "mod")
-          parse While.var "" "val" `shouldBe` Right (While.AId "val")
-          parse While.var "" "a" `shouldBe` Right (While.AId "a")
-          parse While.var "" "b" `shouldBe` Right (While.AId "b")
-          parse While.var "" "max" `shouldBe` Right (While.AId "max")
-          parse While.var "" "min" `shouldBe` Right (While.AId "min")
-          parse While.var "" "hahahahaha" `shouldBe` Right (While.AId "hahahahaha")
+          parse While.var "" "cur" `shouldBe` Right "cur"
+          parse While.var "" "fact" `shouldBe` Right "fact"
+          parse While.var "" "mod" `shouldBe` Right "mod"
+          parse While.var "" "val" `shouldBe` Right "val"
+          parse While.var "" "a" `shouldBe` Right "a"
+          parse While.var "" "b" `shouldBe` Right "b"
+          parse While.var "" "max" `shouldBe` Right "max"
+          parse While.var "" "min" `shouldBe` Right "min"
+          parse While.var "" "hahahahaha" `shouldBe` Right "hahahahaha"
           parse While.var "" "ahahahahaha" `shouldSatisfy` isLeft
           parse While.var "" "" `shouldSatisfy` isLeft
           parse While.var "" "and" `shouldSatisfy` isLeft
@@ -46,35 +46,6 @@ main = hspec $ do
           parse While.var "" "do" `shouldSatisfy` isLeft
           parse While.var "" "5 rings" `shouldSatisfy` isLeft
           parse While.var "" "MyVar" `shouldSatisfy` isLeft
-      describe "For numerals" $ do
-        it "should only accept integers in decimal form" $ do
-          parse While.num "" "-1024" `shouldBe` Right (While.ANum (-1024))
-          parse While.num "" "-512" `shouldBe` Right (While.ANum (-512))
-          parse While.num "" "-256" `shouldBe` Right (While.ANum (-256))
-          parse While.num "" "-128" `shouldBe` Right (While.ANum (-128))
-          parse While.num "" "-64" `shouldBe` Right (While.ANum (-64))
-          parse While.num "" "-32" `shouldBe` Right (While.ANum (-32))
-          parse While.num "" "-16" `shouldBe` Right (While.ANum (-16))
-          parse While.num "" "-8" `shouldBe` Right (While.ANum (-8))
-          parse While.num "" "-4" `shouldBe` Right (While.ANum (-4))
-          parse While.num "" "-2" `shouldBe` Right (While.ANum (-2))
-          parse While.num "" "-1" `shouldBe` Right (While.ANum (-1))
-          parse While.num "" "0" `shouldBe` Right (While.ANum 0)
-          parse While.num "" "1" `shouldBe` Right (While.ANum 1)
-          parse While.num "" "2" `shouldBe` Right (While.ANum 2)
-          parse While.num "" "4" `shouldBe` Right (While.ANum 4)
-          parse While.num "" "8" `shouldBe` Right (While.ANum 8)
-          parse While.num "" "16" `shouldBe` Right (While.ANum 16)
-          parse While.num "" "32" `shouldBe` Right (While.ANum 32)
-          parse While.num "" "64" `shouldBe` Right (While.ANum 64)
-          parse While.num "" "128" `shouldBe` Right (While.ANum 128)
-          parse While.num "" "256" `shouldBe` Right (While.ANum 256)
-          parse While.num "" "512" `shouldBe` Right (While.ANum 512)
-          parse While.num "" "1024" `shouldBe` Right (While.ANum 1024)
-          parse While.num "" "-0" `shouldSatisfy` isLeft
-          parse While.num "" "haha" `shouldSatisfy` isLeft
-          parse While.num "" "a1b2c3" `shouldSatisfy` isLeft
-          parse While.num "" " 10 " `shouldSatisfy` isLeft
       describe "For arithmetic expressions" $ do
         it "should work for trivial examples involving only variables" $ do
           parse While.aexp "" "cur" `shouldBe` Right (While.AId "cur")

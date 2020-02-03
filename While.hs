@@ -87,17 +87,23 @@ Parsers for translating concrete syntax of While into abstract syntax
 -}
 
 -- A variable consists of 1-10 lowercase letters and cannot be a reserved keyword
-var :: Parsec String () AExp
+var :: Parsec String () String
 var = do
   x <- many1 lower
   guard (length x <= 10)
   guard (not (elem x ["and", "or", "true", "false", "if", "then", "else", "while", "do"]))
-  return (AId x)
+  return x
 
--- A numeral must be an integer in decimal form
-num :: Parsec String () AExp
-num = try posNum <|> try zeroNum <|> negNum
+-- An arithmetic expression is a variable, numeral, arithmetic operator applied to two arithmetic expressions or a
+-- parenthesized arithmetic expression
+-- In order to make our parser respect the order of operations, we further subdivide expressions into factors (variable,
+-- numeral or parenthesized expression) and terms (factors seperated by multiplication and/or division only)
+aexp :: Parsec String () AExp
+aexp = spaces *> chainl1 term plusOrMinus <* spaces
   where
+    term = spaces *> chainl1 factor (try multOrDiv) <* spaces
+    factor = try (between (char '(') (char ')') aexp) <|> try (AId <$> var) <|> num
+    num = try posNum <|> try zeroNum <|> negNum
     posNum = do
       leadDigit <- oneOf "123456789"
       otherDigits <- many digit
@@ -109,16 +115,6 @@ num = try posNum <|> try zeroNum <|> negNum
       char '-'
       ANum absN <- posNum
       return (ANum (-absN))
-
--- An arithmetic expression is a variable, numeral, arithmetic operator applied to two arithmetic expressions or a
--- parenthesized arithmetic expression
--- In order to make our parser respect the order of operations, we further subdivide expressions into factors (variable,
--- numeral or parenthesized expression) and terms (factors seperated by multiplication and/or division only)
-aexp :: Parsec String () AExp
-aexp = spaces *> chainl1 term plusOrMinus <* spaces
-  where
-    term = spaces *> chainl1 factor (try multOrDiv) <* spaces
-    factor = try (between (char '(') (char ')') aexp) <|> try var <|> num
     plusOrMinus = do
       spaces
       symbol <- oneOf "+-"
