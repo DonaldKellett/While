@@ -180,3 +180,6 @@ main = hspec $ do
         While.execute prog2MinStr `shouldBe` Just st2
         While.execute "not a program" `shouldBe` Nothing
         While.execute "x := a" `shouldBe` Nothing
+        While.execute "a := 42; b := 13; syntax error!" `shouldBe` Nothing
+        While.execute "a := 10; while (a > 0) do { a := a - 1 }; a; b := 1" `shouldBe` Nothing
+        While.execute "if (0 > 3) then { answer := 13 } else { answer := 42 }; answer := true; answer := 100" `shouldBe` Nothing
