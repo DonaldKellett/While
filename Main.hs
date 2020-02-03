@@ -158,3 +158,13 @@ main = hspec $ do
             Right (While.BAnd (While.BOr (While.BLt (While.AMult (While.APlus (While.AId "a") (While.AId "b")) (While.AId "c")) (While.ADiv (While.AId "d") (While.AMinus (While.AId "e") (While.AId "f")))) (While.BGt (While.APlus (While.AId "g") (While.AMinus (While.AId "h") (While.AId "i"))) (While.AId "j"))) (While.BAnd (While.BAnd While.BTrue (While.BOr (While.BLt (While.AId "k") (While.AId "l")) (While.BGt (While.AId "m") (While.AId "n")))) (While.BOr While.BFalse While.BTrue)))
           parse While.bexp "" "( ( a + b ) * c < d / ( e - f ) or g + ( h - i ) > j ) and ( ( true and ( k < l or m > n ) ) and ( false or true ) )" `shouldBe`
             Right (While.BAnd (While.BOr (While.BLt (While.AMult (While.APlus (While.AId "a") (While.AId "b")) (While.AId "c")) (While.ADiv (While.AId "d") (While.AMinus (While.AId "e") (While.AId "f")))) (While.BGt (While.APlus (While.AId "g") (While.AMinus (While.AId "h") (While.AId "i"))) (While.AId "j"))) (While.BAnd (While.BAnd While.BTrue (While.BOr (While.BLt (While.AId "k") (While.AId "l")) (While.BGt (While.AId "m") (While.AId "n")))) (While.BOr While.BFalse While.BTrue)))
+      describe "For statements" $ do
+        it "should work for some simple examples" $ do
+          prog1Str <- readFile "./prog1.txt"
+          parse While.stmt "" prog1Str `shouldBe` Right prog1
+          prog2Str <- readFile "./prog2.txt"
+          parse While.stmt "" prog2Str `shouldBe` Right prog2
+          prog1MinStr <- readFile "./prog1.min.txt"
+          parse While.stmt "" prog1MinStr `shouldBe` Right prog1
+          prog2MinStr <- readFile "./prog2.min.txt"
+          parse While.stmt "" prog2MinStr `shouldBe` Right prog2

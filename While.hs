@@ -165,3 +165,43 @@ bexp = spaces *> chainl1 conjunct orOp <* spaces
       string "and"
       spaces
       return BAnd
+
+-- A statement is one of: assignment statement, sequence of statements, conditional statement, while loop
+stmt :: Parsec String () Stmt
+stmt = spaces *> chainl1 stmtUnit (try seqOp) <* spaces
+  where
+    stmtUnit = try assStmt <|> try condStmt <|> whileStmt
+    assStmt = do
+      x <- var
+      spaces
+      string ":="
+      spaces
+      a <- aexp
+      return (SAss x a)
+    condStmt = do
+      string "if"
+      spaces
+      b <- bexp
+      spaces
+      string "then"
+      spaces
+      s1 <- between (char '{') (char '}') stmt
+      spaces
+      string "else"
+      spaces
+      s2 <- between (char '{') (char '}') stmt
+      return (SIf b s1 s2)
+    whileStmt = do
+      string "while"
+      spaces
+      b <- bexp
+      spaces
+      string "do"
+      spaces
+      s' <- between (char '{') (char '}') stmt
+      return (SWhile b s')
+    seqOp = do
+      spaces
+      char ';'
+      spaces
+      return SSeq
